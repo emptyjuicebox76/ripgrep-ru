@@ -21,6 +21,8 @@ $ git clone https://github.com/emptyjuicebox76/ripgrep-ru.git
 ```
 2. Откройте README.ru.md для просмотра документации
 
+*или просто откройте README.ru.md прямо из репозитория.*
+
 ## Состояние перевода
 
 - README.md - полностью переведено
