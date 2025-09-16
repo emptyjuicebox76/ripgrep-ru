@@ -17,7 +17,7 @@
 
 1. Клонируйте этот репозиторий:
 ```
-$ git clone https://github.com/your-username/ripgrep-ru.git
+$ git clone https://github.com/emptyjuicebox76/ripgrep-ru.git
 ```
 2. Откройте README.ru.md для просмотра документации
 
