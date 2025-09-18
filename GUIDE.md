@@ -117,16 +117,15 @@ $ rg 'fast\w*' README.md
 https://docs.rs/regex/*/regex/#syntax
 
 
-### Recursive search
+### Рекурсивный поиск
 
-In the previous section, we showed how to use ripgrep to search a single file.
-In this section, we'll show how to use ripgrep to search an entire directory
-of files. In fact, *recursively* searching your current working directory is
-the default mode of operation for ripgrep, which means doing this is very
-simple.
+В предыдущем разделе, мы показали как использовать ripgrep для поиска по одному файлу.
+В этом разделе, мы покажем как использовать ripgrep для поиска по целой директории файлов.
+На самом деле, *рекурсивный поиск* в текущей рабочей директории является режимом работы
+ripgrep по умолчанию, а это значит что выполнить это очень просто.
 
-Using our unzipped archive of ripgrep source code, here's how to find all
-function definitions whose name is `write`:
+Используя наш распакованный архив исходного кода ripgrep, вот пример как найти все
+объявленные функции с именем `write`:
 
 ```
 $ rg 'fn write\('
@@ -148,20 +147,19 @@ termcolor/src/lib.rs
 1353:    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
 ```
 
-(**Note:** We escape the `(` here because `(` has special significance inside
-regular expressions. You could also use `rg -F 'fn write('` to achieve the
-same thing, where `-F` interprets your pattern as a literal string instead of
-a regular expression.)
+(**ПРИМЕЧАНИЕ:** Мы избегаем `(` здесь, потому что `(` имеет особое значение внутри
+регулярных выражений. Также можно использовать `rg -F 'fn write('` для достижения
+того же результата, где флаг `-F` интерпретирует ваш шаблон как буквальную строку
+вместо регулярного выражения.)
 
-In this example, we didn't specify a file at all. Instead, ripgrep defaulted
-to searching your current directory in the absence of a path. In general,
-`rg foo` is equivalent to `rg foo ./`.
+В этом примере мы совсем не указывали файл. Вместо этого ripgrep по умолчанию
+выполнил поиск в вашей текущей директории по отсутствию пути. В общем случае
+`rg foo` эквивалентно `rg foo ./`.
 
-This particular search showed us results in both the `src` and `termcolor`
-directories. The `src` directory is the core ripgrep code where as `termcolor`
-is a dependency of ripgrep (and is used by other tools). What if we only wanted
-to search core ripgrep code? Well, that's easy, just specify the directory you
-want:
+Этот поиск показал результаты в обоих директориях `src` и `termcolor`. Директория
+`src` - это основной код ripgrep, а `termcolor` является зависимостью от ripgrep
+(и используется другими инструментами.) Что если бы мы хотели выполнить поиск только
+по основному коду ripgrep? Это делается очень просто, достаточно указать нужную директорию:
 
 ```
 $ rg 'fn write\(' src
@@ -169,93 +167,87 @@ src/printer.rs
 469:    fn write(&mut self, buf: &[u8]) {
 ```
 
-Here, ripgrep limited its search to the `src` directory. Another way of doing
-this search would be to `cd` into the `src` directory and simply use `rg 'fn
-write\('` again.
+В данном случае ripgrep ограничил поиск директорией `src`. Другим способом выполнения
+этого поиска было бы перейти в директорию `src` при помощи `cd` и просто снова использовать
+`rg 'fn write\('`.
 
+### Автоматическая фильтрация
 
-### Automatic filtering
+После рекурсивного поиска наиболее важной особенностью ripgrep является то,
+по чему он не будет выполнять поиск. По умолчанию при поиске в директории ripgprep
+игнорирует всё перечисленное ниже:
 
-After recursive search, ripgrep's most important feature is what it *doesn't*
-search. By default, when you search a directory, ripgrep will ignore all of
-the following:
+1. Файлы и директории, соответствующие шаблонам glob в этих трёх категориях:
+      1. `.gitignore` globs (включая глобальные и спцифичные для репозитория globs). Это
+         учитиывает `.gitignore` файлы в родительских директориях которые являются
+         частью того же `git` репозитория. (Только в случае если не будет задан флаг
+         `--no-require-git`.)
+      2. `.ignore` globs, которые при возникновении конфликта имеют приоритет над всеми
+         всеми gitignore globs. Это включает файлы `.ignore` в родительских директориях.
+      3. `.rgignore` globs, которые при возникновении конфликта имеют приоритет над всеми
+         `.ignore` globs. Это включает файлы `.rgignore` в родительских директориях.
+2. Спрятанные файлы и директории.
+3. Бинарные файлы. (ripgrep рассматривает любтые файлы с байтом `NUL` как бинарные.)
+4. Символические ссылки не отслеживаются.
 
-1. Files and directories that match glob patterns in these three categories:
-      1. `.gitignore` globs (including global and repo-specific globs). This
-         includes `.gitignore` files in parent directories that are part of the
-         same `git` repository. (Unless the `--no-require-git` flag is given.)
-      2. `.ignore` globs, which take precedence over all gitignore globs
-         when there's a conflict. This includes `.ignore` files in parent
-         directories.
-      3. `.rgignore` globs, which take precedence over all `.ignore` globs
-         when there's a conflict. This includes `.rgignore` files in parent
-         directories.
-2. Hidden files and directories.
-3. Binary files. (ripgrep considers any file with a `NUL` byte to be binary.)
-4. Symbolic links aren't followed.
+Все эти функции можно переключать с помощью различных флагов, предоставляемых
+ripgrep:
 
-All of these things can be toggled using various flags provided by ripgrep:
+1. Вы можете отключить все фильтры связанные с ignore при помощи флага`--no-ignore`.
+2. Поиск по спрятанным файлам и директориям можно включить с помощью `--hidden` (сокращённо `-.`).
+3. Поиск по бинарным файлам можно включить с помощью флага `--text` (сокращённо `-a`).
+   Будьте осторожны с этим флагом! Бинарные файлы могут выдавать управляющие символы в ваш
+   терминал, что может привести к неожиданным результатам.
+4. ripgrep может отслеживать символические ссылки с помощью флага `--follow` (сокращённо `-L`).
 
-1. You can disable all ignore-related filtering with the `--no-ignore` flag.
-2. Hidden files and directories can be searched with the `--hidden` (`-.` for
-short) flag.
-3. Binary files can be searched via the `--text` (`-a` for short) flag.
-   Be careful with this flag! Binary files may emit control characters to your
-   terminal, which might cause strange behavior.
-4. ripgrep can follow symlinks with the `--follow` (`-L` for short) flag.
+Для удобства ripgrep также представляет флаг `--unrestricted` (сокращённо `-u`).
+Повторное использование этого флага приведёт к тому, что ripgrep будет отключать всё больше
+и больше функций фильтрации. То есть`-u` отключит обработку `.gitignore`, `-uu` выполнит поиск
+по скрытым файлам и директориям, а `-uuu` выполнит поиск бинарных файлов. Это полезно, когда вы
+используете ripgrep и не уверены, скрывает ли его фильтрация от вас результаты. Установка пары
+флагов `-u` - это быстрый способ выяснить это. (Используйте флаг `--debug`, если вы всё ещё 
+не уверены, и если это не поможет, [оформите issue](https://github.com/BurntSushi/ripgprep/issues/new).)
 
-As a special convenience, ripgrep also provides a flag called `--unrestricted`
-(`-u` for short). Repeated uses of this flag will cause ripgrep to disable
-more and more of its filtering. That is, `-u` will disable `.gitignore`
-handling, `-uu` will search hidden files and directories and `-uuu` will search
-binary files. This is useful when you're using ripgrep and you aren't sure
-whether its filtering is hiding results from you. Tacking on a couple `-u`
-flags is a quick way to find out. (Use the `--debug` flag if you're still
-perplexed, and if that doesn't help,
-[file an issue](https://github.com/BurntSushi/ripgrep/issues/new).)
+Обработка `.gitignore` в ripgrep на самом деле выходит за рамки простых файлов `.gitignore`.
+ripgrep также будет соблюдать правила, специфичные для репозитория, найденные в
+`$GIT_DIR/info/exclude`, а также любые глобальные правила ignore в вашем `core.excludesFile`
+(который обычно является `$XDG_CONFIG_HOME/git/ignore` в Unix-подобных системах).
 
-ripgrep's `.gitignore` handling actually goes a bit beyond just `.gitignore`
-files. ripgrep will also respect repository specific rules found in
-`$GIT_DIR/info/exclude`, as well as any global ignore rules in your
-`core.excludesFile` (which is usually `$XDG_CONFIG_HOME/git/ignore` on
-Unix-like systems).
+Иногда требуется выполнить поиск в файлах, которые находятся в вашем `.gitignore`, поэтому
+можно указать дополнительные правила ignore или переопределения в файле `.ignore`
+(не зависящем от приложения) или `.rgignore` (специфичном для ripgrep).
 
-Sometimes you want to search files that are in your `.gitignore`, so it is
-possible to specify additional ignore rules or overrides in a `.ignore`
-(application agnostic) or `.rgignore` (ripgrep specific) file.
-
-For example, let's say you have a `.gitignore` file that looks like this:
+Например, предположим, что у вас есть файл `.gitignore`, который выглядит следующим образом:
 
 ```
 log/
 ```
 
-This generally means that any `log` directory won't be tracked by `git`.
-However, perhaps it contains useful output that you'd like to include in your
-searches, but you still don't want to track it in `git`. You can achieve this
-by creating a `.ignore` file in the same directory as the `.gitignore` file
-with the following contents:
+Как правило, это означает, что ни один каталог `log` не будет отслеживается `git`.
+Однако, возможно он содержит полезные данные, которые вы хотели бы включить в свой поиск, но
+по-прежнему не хотите отслеживать их в `git`. Вы можете добиться этого, создав файл `.ignore`
+в той же директории, что и файл `.gitignore`, со следующим содержимым:
 
 ```
 !log/
 ```
 
-ripgrep treats `.ignore` files with higher precedence than `.gitignore` files
-(and treats `.rgignore` files with higher precedence than `.ignore` files).
-This means ripgrep will see the `!log/` whitelist rule first and search that
-directory.
+ripgrep обрабатывает файлы `.ignore` с более высоким приоритетом, чем файлы `.gitignore`
+(и обрабатывает файлы `.rgignore` с более высоким приоритетом, чем файлы `.ignore`).
+Это означает, что ripgrep сначала увидит правило белого списка `!log/` и выполнит
+полис в этой директории.
 
-Like `.gitignore`, a `.ignore` file can be placed in any directory. Its rules
-will be processed with respect to the directory it resides in, just like
+Как и `.gitignore`, файл `.ignore` может быть помещён в любую директорию. Его правила будут
+обрабатываться в соответствии с директорией, в которой он находится, точно так же, как
 `.gitignore`.
 
-To process `.gitignore` and `.ignore` files case insensitively, use the flag
-`--ignore-file-case-insensitive`. This is especially useful on case insensitive
-file systems like those on Windows and macOS. Note though that this can come
-with a significant performance penalty, and is therefore disabled by default.
+Чтобы обрабатывать файлы `.gitignore` и `.ignore` без учёта регистра, используйте флаг
+`--ignore-file-case-insensitive`. Это особенно полезно в файловых системах, не чувствительных
+к регистру, таких как Windows и macOS. Однако, обратите внимание, что это может привести
+к значительному снижению производительности и поэтому по умолчанию отключено.
 
-For a more in depth description of how glob patterns in a `.gitignore` file
-are interpreted, please see `man gitignore`.
+Более подробное описание того, как интерпретируются шаблоны glob в файле `.gitignore`,
+смотрите в `man gitignore`.
 
 
 ### Manual filtering: globs
