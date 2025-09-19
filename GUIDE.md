@@ -14,8 +14,8 @@
 * [Основы](#основы)
 * [Рекурсивный поиск](#рекурсивный-поиск)
 * [Автоматическая фильтрация](#автоматическая-фильтрация)
-* [Ручная фильтрация: globs](#manual-filtering-globs)
-* [Ручная фильтрация: типы файлов](#manual-filtering-file-types)
+* [Ручная фильтрация: globs](#ручная-фильтрация-globs)
+* [Ручная фильтрация: типы файлов](#ручная-фильтрация-типы-файлов)
 * [Замены](#replacements)
 * [Конфигурационный файл](#configuration-file)
 * [Кодировка файлов](#file-encoding)
@@ -250,32 +250,32 @@ ripgrep обрабатывает файлы `.ignore` с более высоки
 смотрите в `man gitignore`.
 
 
-### Manual filtering: globs
+### Ручная фильтрация: globs
 
-In the previous section, we talked about ripgrep's filtering that it does by
-default. It is "automatic" because it reacts to your environment. That is, it
-uses already existing `.gitignore` files to produce more relevant search
-results.
+В предыдущем разделе мы говорили о фильтрации в ripgrep, которую он выполняет по
+умолчанию. Она "автоматическая", поскольку реагирует на ваше окружение. То есть она
+использует уже существующие файлы `.gitignore` для получения более релевантных
+результатов поиска.
 
-In addition to automatic filtering, ripgrep also provides more manual or ad hoc
-filtering. This comes in two varieties: additional glob patterns specified in
-your ripgrep commands and file type filtering. This section covers glob
-patterns while the next section covers file type filtering.
+В дополнение к автоматической фильтрации, ripgrep также предоставляет дополнительные
+возможности ручной или специальной фильтрации. Она бывает двух видов: дополнительные 
+шаблоны glob, указанные в командах ripgrep, и фильтрация по типу файла. В этом
+разделе рассматриваются шаблоны glob, а в следующем разделе - фильтрация по типу файла.
 
-In our ripgrep source code (see [Basics](#basics) for instructions on how to
-get a source archive to search), let's say we wanted to see which things depend
-on `clap`, our argument parser.
+В нашем исходном коде ripgrep (инструкции о том, как получить архив с исходным кодом 
+для поиска, смотрите в [Основы](#основы)), допустим, мы хотели посмотреть, какие функции
+зависят от `clap`, нашего парсера аргументов.
 
-We could do this:
+Мы могли бы сделать следующее:
 
 ```
 $ rg clap
 [lots of results]
 ```
 
-But this shows us many things, and we're only interested in where we wrote
-`clap` as a dependency. Instead, we could limit ourselves to TOML files, which
-is how dependencies are communicated to Rust's build tool, Cargo:
+Но это показывает нам слишком много ненужной информации, а нас интересует только то,
+где мы написали `clap` как зависимость. Вместо этого мы могли бы ограничиться файлами TOML,
+с помощью которых зависимости передаются в инструмент сборки Rust, Cargo:
 
 ```
 $ rg clap -g '*.toml'
@@ -284,137 +284,137 @@ Cargo.toml
 51:clap = "2.26"
 ```
 
-The `-g '*.toml'` syntax says, "make sure every file searched matches this
-glob pattern." Note that we put `'*.toml'` in single quotes to prevent our
-shell from expanding the `*`.
+Синтаксис `-g '*.toml'` означает: "убедитесь, что каждый искомый файл соответствует этому
+glob шаблону". Обратите внимание, что мы заключили `'*.toml'` в одинарные кавычки, чтобы наша
+оболочка не расширяла `*`.
 
-If we wanted, we could tell ripgrep to search anything *but* `*.toml` files:
+Если бы мы хотели, мы могли бы указать ripgrep включить в поиск все файлы кроме файлов с
+расширением `.toml`:
 
 ```
 $ rg clap -g '!*.toml'
 [lots of results]
 ```
 
-This will give you a lot of results again as above, but they won't include
-files ending with `.toml`. Note that the use of a `!` here to mean "negation"
-is a bit non-standard, but it was chosen to be consistent with how globs in
-`.gitignore` files are written. (Although, the meaning is reversed. In
-`.gitignore` files, a `!` prefix means whitelist, and on the command line, a
-`!` means blacklist.)
+Это снова даст вам множество результатов, как было в примере выше, но они не будут включать
+файлы, заканчивающиеся на `.toml`. Обратите внимание, что использование `!` здесь для 
+обозначения "отрицания" немного нестандартно, но оно было выбрано в соответствии с тем,
+как записываются glob в файлах ".gitignore". (Хотя, значение является противоположностью.
+В файлах `.gitignore` префикс `!` означает белый список, а в командной строке `!` означает
+черный список.)
 
-Globs are interpreted in exactly the same way as `.gitignore` patterns. That
-is, later globs will override earlier globs. For example, the following command
-will search only `*.toml` files:
+Glob интерпретируются точно так же, как шаблоны `.gitignore`. То есть более поздние 
+glob будут переопределять более ранние glob. Например, следующая команда будет выполнять 
+поиск только в файлах `*.toml`.:
 
 ```
 $ rg clap -g '!*.toml' -g '*.toml'
 ```
 
-Interestingly, reversing the order of the globs in this case will match
-nothing, since the presence of at least one non-blacklist glob will institute a
-requirement that every file searched must match at least one glob. In this
-case, the blacklist glob takes precedence over the previous glob and prevents
-any file from being searched at all!
+Интересно, что изменение порядка следования glob в этом случае ничего не даст, поскольку 
+наличие хотя бы одного glob, не внесенного в черный список , будет требовать, чтобы каждый 
+искомый файл соответствовал хотя бы одному glob. В этом случае глобальный объект черного 
+списка имеет приоритет над предыдущим глобальным объектом и вообще предотвращает поиск в 
+каком-либо файле!
 
+### Ручная фильтрация: типы файлов
 
-### Manual filtering: file types
-
-Over time, you might notice that you use the same glob patterns over and over.
-For example, you might find yourself doing a lot of searches where you only
-want to see results for Rust files:
+Со временем вы можете заметить, что снова и снова используете одни и те же шаблоны glob.
+Например, вы можете обнаружить, что выполняете множество поисковых
+запросов, в которых хотите видеть результаты только для файлов Rust:
 
 ```
 $ rg 'fn run' -g '*.rs'
 ```
 
-Instead of writing out the glob every time, you can use ripgrep's support for
-file types:
+Вместо того, чтобы каждый раз записывать glob, вы можете использовать поддержку ripgrep
+типов файлов:
 
 ```
 $ rg 'fn run' --type rust
 ```
 
-or, more succinctly,
+или, более кратко:
 
 ```
 $ rg 'fn run' -trust
 ```
 
-The way the `--type` flag functions is simple. It acts as a name that is
-assigned to one or more globs that match the relevant files. This lets you
-write a single type that might encompass a broad range of file extensions. For
-example, if you wanted to search C files, you'd have to check both C source
-files and C header files:
+Принцип действия флага `--type` прост. Он действует как имя, присваиваемое одному или
+нескольким glob, соответствующим подходящим файлам. Это позволяет вам создать единый тип,
+который может охватывать широкий диапазон расширений файлов. Например, если вы хотите 
+выполнить поиск в файлах C, вам нужно будет проверить как исходные файлы C, так и заголовочные
+файлы C:
 
 ```
 $ rg 'int main' -g '*.{c,h}'
 ```
 
-or you could just use the C file type:
+Или вы могли бы просто использовать тип файла C:
 
 ```
 $ rg 'int main' -tc
 ```
 
-Just as you can write blacklist globs, you can blacklist file types too:
+Точно так же, как вы можете создавать glob с черными списками, вы также можете вносить
+в черный список типы файлов:
 
 ```
 $ rg clap --type-not rust
 ```
 
-or, more succinctly,
+или, более кратко:
 
 ```
 $ rg clap -Trust
 ```
 
-That is, `-t` means "include files of this type" where as `-T` means "exclude
-files of this type."
+То есть `-t` означает "включать файлы этого типа", где `-T` означает "исключать
+файлы этого типа".
 
-To see the globs that make up a type, run `rg --type-list`:
+Чтобы просмотреть glob, составляющие типы, запустите `rg --type-list`:
 
 ```
 $ rg --type-list | rg '^make:'
 make: *.mak, *.mk, GNUmakefile, Gnumakefile, Makefile, gnumakefile, makefile
 ```
 
-By default, ripgrep comes with a bunch of pre-defined types. Generally, these
-types correspond to well known public formats. But you can define your own
-types as well. For example, perhaps you frequently search "web" files, which
-consist of JavaScript, HTML and CSS:
+По умолчанию ripgrep поставляется с набором предопределенных типов. Как правило, эти
+типы соответствуют хорошо известным общедоступным форматам. Но вы также можете определить
+свои собственные типы. Например, возможно, вы часто выполняете поиск в "веб-файлах", которые
+состоят из JavaScript, HTML и CSS:
 
 ```
 $ rg --type-add 'web:*.html' --type-add 'web:*.css' --type-add 'web:*.js' -tweb title
 ```
 
-or, more succinctly,
+или, более кратко:
 
 ```
 $ rg --type-add 'web:*.{html,css,js}' -tweb title
 ```
 
-The above command defines a new type, `web`, corresponding to the glob
-`*.{html,css,js}`. It then applies the new filter with `-tweb` and searches for
-the pattern `title`. If you ran
+Приведенная выше команда определяет новый тип `web`, соответствующий glob объекту
+`*.{html,css,js}`. Затем она применяет новый фильтр с помощью `-tweb` и выполняет поиск по
+шаблону `title`. Если вы запустили:
 
 ```
 $ rg --type-add 'web:*.{html,css,js}' --type-list
 ```
 
-Then you would see your `web` type show up in the list, even though it is not
-part of ripgrep's built-in types.
+Тогда вы увидите, что ваш тип `web` отображается в списке, даже если он не является частью
+встроенных типов ripgrep.
 
-It is important to stress here that the `--type-add` flag only applies to the
-current command. It does not add a new file type and save it somewhere in a
-persistent form. If you want a type to be available in every ripgrep command,
-then you should either create a shell alias:
+Здесь важно подчеркнуть, что флаг `--type-add` применяется только к текущей команде. Он не
+добавляет новый тип файла и не сохраняет его где-либо в постоянной форме. Если вы хотите,
+чтобы тип был доступен в каждой команде ripgrep, вам следует либо создать псевдоним оболочки:
 
 ```
 alias rg="rg --type-add 'web:*.{html,css,js}'"
 ```
 
-or add `--type-add=web:*.{html,css,js}` to your ripgrep configuration file.
-([Configuration files](#configuration-file) are covered in more detail later.)
+либо добавить `--type-add=web:*.{html,css,js}` в свой конфигурационный файл ripgrep.
+([Файлы конфигурации](#файлы-конфигурации) будут рассмотрены более подробно позже.)
 
 #### The special `all` file type
 
