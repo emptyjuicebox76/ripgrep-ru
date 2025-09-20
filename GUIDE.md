@@ -531,28 +531,28 @@ $ rg 'fast\s+(?P<word>\w+)' README.md -r 'fast-$word'
 замену в самом файле.)
 
 
-### Configuration file
+### Конфигурационный файл
 
-It is possible that ripgrep's default options aren't suitable in every case.
-For that reason, and because shell aliases aren't always convenient, ripgrep
-supports configuration files.
+Возможно, что параметры ripgrep по умолчанию не будут подходить во всех случаях.
+По этой причине, а также потому, что псевдонимы командной строки не всегда удобны, ripgrep
+поддерживает файлы конфигурации.
 
-Setting up a configuration file is simple. ripgrep will not look in any
-predetermined directory for a config file automatically. Instead, you need to
-set the `RIPGREP_CONFIG_PATH` environment variable to the file path of your
-config file. Once the environment variable is set, open the file and just type
-in the flags you want set automatically. There are only two rules for
-describing the format of the config file:
+Настроить конфигурационный файл очень просто. Программа ripgrep не будет автоматически искать
+конфигурационный файл в каком-либо заданном каталоге. Вместо этого вам нужно
+задать переменную среды `RIPGREP_CONFIG_PATH` как путь к вашему конфигурационному файлу.
+Как только переменная среды будет задана, откройте файл и просто введите
+флаги, которые вы хотите установить автоматически. Существует только два правила для
+описания файла конфигурации:
 
-1. Every line is a shell argument, after trimming whitespace.
-2. Lines starting with `#` (optionally preceded by any amount of whitespace)
-are ignored.
+1. Каждая строка является аргументом оболочки после удаления пробелов.
+2. Строки, начинающиеся с `#` (необязательно с любым количеством пробелов)
+игнорируются.
 
-In particular, there is no escaping. Each line is given to ripgrep as a single
-command line argument verbatim.
+В частности, нет возможности экранирования. Каждая строка передается в ripgrep в виде отдельного
+аргумента командной строки дословно.
 
-Here's an example of a configuration file, which demonstrates some of the
-formatting peculiarities:
+Вот пример конфигурационного файла, который демонстрирует некоторые особенности
+форматирования:
 
 ```
 $ cat $HOME/.ripgreprc
@@ -582,96 +582,88 @@ web:*.{html,css,js}*
 --smart-case
 ```
 
-When we use a flag that has a value, we either put the flag and the value on
-the same line but delimited by an `=` sign (e.g., `--max-columns=150`), or we
-put the flag and the value on two different lines. This is because ripgrep's
-argument parser knows to treat the single argument `--max-columns=150` as a
-flag with a value, but if we had written `--max-columns 150` in our
-configuration file, then ripgrep's argument parser wouldn't know what to do
-with it.
+Когда мы используем флаг, у которого есть значение, мы либо помещаем флаг и значение в
+одну строку, но разделяем их знаком `=` (например, `--max-columns=150`), либо
+помещаем флаг и значение в две разные строки. Это связано с тем, что анализатор
+аргументов ripgrep знает, что единственный аргумент `--max-columns=150` должен обрабатываться
+как флаг со значением, но если бы мы написали `--max-columns 150` в нашем
+конфигурационном файле, то анализатор аргументов ripgrep не знал бы, что с ним делать.
 
-Putting the flag and value on different lines is exactly equivalent and is a
-matter of style.
+Размещение флага и значения в разных строках в точности эквивалентно и
+зависит от стиля.
 
-Comments are encouraged so that you remember what the config is doing. Empty
-lines are OK too.
+Рекомендуется использовать комментарии, чтобы вы помнили, что делает конфигурация. Пустые
+строки тоже допустимы.
 
-So let's say you're using the above configuration file, but while you're at a
-terminal, you really want to be able to see lines longer than 150 columns. What
-do you do? Thankfully, all you need to do is pass `--max-columns 0` (or `-M0`
-for short) on the command line, which will override your configuration file's
-setting. This works because ripgrep's configuration file is *prepended* to the
-explicit arguments you give it on the command line. Since flags given later
-override flags given earlier, everything works as expected. This works for most
-other flags as well, and each flag's documentation states which other flags
-override it.
+Итак, предположим, вы используете приведенный выше конфигурационный файл, но, находясь в
+терминале, вы хотите видеть строки длиной более 150 столбцов. Что делать? К счастью,
+достаточно ввести `--max-columns 0` (или сокращенно `-M0`) в командной строке,
+что переопределит настройки вашего конфигурационного файла. Это работает, потому что файл
+конфигурации ripgrep имеет *предварительное значение* перед явными аргументами, которые вы
+указываете в командной строке. Поскольку флаги, заданные позже, переопределяют флаги, заданные
+ранее. Это работает для большинства других флагов, и в документации к каждому флагу указано,
+какие другие флаги переопределяют его.
 
-If you're confused about what configuration file ripgrep is reading arguments
-from, then running ripgrep with the `--debug` flag should help clarify things.
-The debug output should note what config file is being loaded and the arguments
-that have been read from the configuration.
+Если вы не уверены, из какого конфигурационного файла ripgrep считывает аргументы, то запуск 
+ripgrep с флагом `--debug` должен помочь вам разобраться. В данных отладки должно
+быть указано, какой конфигурационный файл загружается, и какие аргументы были считаны из
+конфигурации.
 
-Finally, if you want to make absolutely sure that ripgrep *isn't* reading a
-configuration file, then you can pass the `--no-config` flag, which will always
-prevent ripgrep from reading extraneous configuration from the environment,
-regardless of what other methods of configuration are added to ripgrep in the
-future.
+Наконец, если вы хотите быть абсолютно уверены, что ripgrep  *не читает* файл конфигурации, то
+вы можете передать флаг `--no-config`, который исключит использование конфигурационного файла,
+независимо от того, какие другие методы настройки будут добавлены в ripgrep в будущем.
 
+### Кодировка файлов
 
-### File encoding
+[Кодировка текста](https://ru.wikipedia.org/wiki/Character_encoding) это сложная тема, но мы
+можем попытаться обобщить её значимость для ripgrep:
 
-[Text encoding](https://en.wikipedia.org/wiki/Character_encoding) is a complex
-topic, but we can try to summarize its relevancy to ripgrep:
+* Файлы, как правило, представляют собой просто набор байтов. Надежного способа узнать
+  их кодировку не существует.
+* Либо кодировка шаблона должна совпадать с кодировкой файлов, в которых выполняется
+  поиск, либо должна быть выполнена какая-либо форма перекодирования, которая преобразует либо
+  шаблон, либо файл в ту же кодировку, что и другой файл.
+* ripgrep, как правило, лучше всего работает с обычными текстовыми файлами, а среди обычных
+  текстовых файлов наиболее популярными кодировками, являются ASCII, latin1 или UTF-8.
+  В качестве особого исключения в среде Windows преобладает UTF-16.
 
-* Files are generally just a bundle of bytes. There is no reliable way to know
-  their encoding.
-* Either the encoding of the pattern must match the encoding of the files being
-  searched, or a form of transcoding must be performed that converts either the
-  pattern or the file to the same encoding as the other.
-* ripgrep tends to work best on plain text files, and among plain text files,
-  the most popular encodings likely consist of ASCII, latin1 or UTF-8. As
-  a special exception, UTF-16 is prevalent in Windows environments
+Учитывая эту информацию, вот как ведет себя ripgrep, когда задан флаг `--encoding auto`,
+которое используется по умолчанию:
 
-In light of the above, here is how ripgrep behaves when `--encoding auto` is
-given, which is the default:
+* Предполагается, что все вводимые данные совместимы с ASCII (что означает, что каждый байт,
+  соответствующий ASCII-коду, на самом деле является ASCII-кодом). Это включает в себя сам ASCII,
+  latin1 и UTF-8.
+* ripgrep лучше всего работает с кодировкой UTF-8. Например, движок регулярных выражений
+  ripgrep поддерживает функции Unicode. А именно, классы символов, такие как `\w`, будут
+  соответствует всем символам слов в соответствии с определением Unicode, и `.` будет
+  соответствовать любой кодовой точке Unicode вместо любого байта. В этих конструкциях
+  используется UTF-8, поэтому они просто не будут совпадать, если в файле встретятся байты,
+  которые не соответствуют UTF-8.
+* Чтобы обработать случай с UTF-16, ripgrep выполнит так называемый "анализ спецификации".
+  по умолчанию. То есть будут считаны первые три байта файла, и если они соответствуют
+  спецификации UTF-16, то ripgrep перекодирует содержимое файла из UTF-16 в UTF-8, а затем
+  выполнит поиск по перекодированной версии файла. (Это приводит к снижению
+  производительности, поскольку в дополнение к поиску в регулярных выражениях требуется
+  перекодирование.) Если файл содержит недопустимый UTF-16, то вместо недопустимых кодовых
+  единиц заменяется кодовая точка Unicode.
+* Для обработки других случаев ripgrep предоставляет флаг `-E/--encoding`, который позволяет
+  вам указать кодировку из [Стандарта кодирования](https://encoding.spec.whatwg.org/#concept-encoding-get). ripgrep будет считать, что все файлы *поиска* соответствуют указанной 
+  кодировке (если только файл имеет спецификацию) и выполнит этап перекодирования точно так же,
+  как в случае с UTF-16, описанном выше.
 
-* All input is assumed to be ASCII compatible (which means every byte that
-  corresponds to an ASCII codepoint actually is an ASCII codepoint). This
-  includes ASCII itself, latin1 and UTF-8.
-* ripgrep works best with UTF-8. For example, ripgrep's regular expression
-  engine supports Unicode features. Namely, character classes like `\w` will
-  match all word characters by Unicode's definition and `.` will match any
-  Unicode codepoint instead of any byte. These constructions assume UTF-8,
-  so they simply won't match when they come across bytes in a file that aren't
-  UTF-8.
-* To handle the UTF-16 case, ripgrep will do something called "BOM sniffing"
-  by default. That is, the first three bytes of a file will be read, and if
-  they correspond to a UTF-16 BOM, then ripgrep will transcode the contents of
-  the file from UTF-16 to UTF-8, and then execute the search on the transcoded
-  version of the file. (This incurs a performance penalty since transcoding
-  is needed in addition to regex searching.) If the file contains invalid
-  UTF-16, then the Unicode replacement codepoint is substituted in place of
-  invalid code units.
-* To handle other cases, ripgrep provides a `-E/--encoding` flag, which permits
-  you to specify an encoding from the
-  [Encoding Standard](https://encoding.spec.whatwg.org/#concept-encoding-get).
-  ripgrep will assume *all* files searched are the encoding specified (unless
-  the file has a BOM) and will perform a transcoding step just like in the
-  UTF-16 case described above.
+По умолчанию ripgrep не требует, чтобы его входные данные были в формате UTF-8. То есть ripgrep
+может выполнять и будет выполнять поиск в произвольных байтах. Ключевым моментом здесь является
+то, что если вы будете искать содержимое, которое не соответствует UTF-8, то полезность вашего
+шаблона снизится. Если вы будете искать байты, которые не совместимы с ASCII, то, скорее
+всего, шаблон ничего не найдет. Учитывая все вышесказанное, этот режим работы важен, поскольку
+он позволяет вам находить ASCII или UTF-8 *внутри* файлов, которые в остальном представляют 
+собой произвольные байты.
 
-By default, ripgrep will not require its input be valid UTF-8. That is, ripgrep
-can and will search arbitrary bytes. The key here is that if you're searching
-content that isn't UTF-8, then the usefulness of your pattern will degrade. If
-you're searching bytes that aren't ASCII compatible, then it's likely the
-pattern won't find anything. With all that said, this mode of operation is
-important, because it lets you find ASCII or UTF-8 *within* files that are
-otherwise arbitrary bytes.
-
-As a special case, the `-E/--encoding` flag supports the value `none`, which
-will completely disable all encoding related logic, including BOM sniffing.
-When `-E/--encoding` is set to `none`, ripgrep will search the raw bytes of
-the underlying file with no transcoding step. For example, here's how you might
-search the raw UTF-16 encoding of the string `Шерлок`:
+В качестве особого случая флаг `-E/--encoding` поддерживает значение `none`, которое полностью
+отключает всю логику, связанную с кодированием, включая анализ спецификации. Если для параметра
+`-E/--encoding` задано значение `none`, ripgrep выполнит поиск в необработанных байтах базового
+файла без этапа перекодирования. Например, вот как вы могли бы выполнить поиск в исходной
+кодировке UTF-16 строки `Шерлок`:
 
 ```
 $ rg '(?-u)\(\x045\x04@\x04;\x04>\x04:\x04' -E none -a some-utf16-file
@@ -679,24 +671,26 @@ $ rg '(?-u)\(\x045\x04@\x04;\x04>\x04:\x04' -E none -a some-utf16-file
 
 Of course, that's just an example meant to show how one can drop down into
 raw bytes. Namely, the simpler command works as you might expect automatically:
+Конечно, это всего лишь пример, призванный показать, как можно использовать
+необработанные байты. А именно, поиск можно выполнить более простым образом, автоматически:
 
 ```
 $ rg 'Шерлок' some-utf16-file
 ```
 
-Finally, it is possible to disable ripgrep's Unicode support from within the
-regular expression. For example, let's say you wanted `.` to match any byte
-rather than any Unicode codepoint. (You might want this while searching a
-binary file, since `.` by default will not match invalid UTF-8.) You could do
-this by disabling Unicode via a regular expression flag:
+Наконец, можно отключить поддержку Unicode в ripgrep с помощью регулярного выражения.
+Например, предположим, что вы хотите, чтобы `.` соответствовал любому байту , а не какой-либо
+кодовой точке Unicode. (Это может потребоваться при поиске в бинарном файле, поскольку `.` 
+по умолчанию не соответствует недопустимому UTF-8.) Вы могли бы сделать это, отключив Unicode
+с помощью флага регулярного выражения:
 
 ```
 $ rg '(?-u:.)'
 ```
 
-This works for any part of the pattern. For example, the following will find
-any Unicode word character followed by any ASCII word character followed by
-another Unicode word character:
+Это работает для любой части шаблона. Например, в приведенном ниже примере вы найдете
+любой символ слова в Unicode, за которым следует любой символ слова в ASCII, за которым следует
+другой символ слова в Unicode:
 
 ```
 $ rg '\w(?-u:\w)\w'
