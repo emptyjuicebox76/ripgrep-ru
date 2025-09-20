@@ -16,12 +16,12 @@
 * [Автоматическая фильтрация](#автоматическая-фильтрация)
 * [Ручная фильтрация: globs](#ручная-фильтрация-globs)
 * [Ручная фильтрация: типы файлов](#ручная-фильтрация-типы-файлов)
-* [Замены](#replacements)
-* [Конфигурационный файл](#configuration-file)
-* [Кодировка файлов](#file-encoding)
-* [Бинарные данные](#binary-data)
-* [Препроцессор](#preprocessor)
-* [Общие параметры](#common-options)
+* [Замены](#замены)
+* [Конфигурационный файл](#конфигурационный-файл)
+* [Кодировка файлов](#Кодировка-файлов)
+* [Бинарные данные](#бинарные-данные)
+* [Препроцессор](#препроцессор)
+* [Общие параметры](#общие-параметры)
 
 
 ### Основы
@@ -416,27 +416,27 @@ alias rg="rg --type-add 'web:*.{html,css,js}'"
 либо добавить `--type-add=web:*.{html,css,js}` в свой конфигурационный файл ripgrep.
 ([Файлы конфигурации](#файлы-конфигурации) будут рассмотрены более подробно позже.)
 
-#### The special `all` file type
+#### Специальный тип файла `all`
 
-A special option supported by the `--type` flag is `all`. `--type all` looks
-for a match in any of the supported file types listed by `--type-list`,
-including those added on the command line using `--type-add`. It's equivalent
-to the command `rg --type agda --type asciidoc --type asm ...`, where `...`
-stands for a list of `--type` flags for the rest of the types in `--type-list`.
+Специальным параметром, поддерживаемым флагом `--type`, является `all`. `--type all`
+выполняет поиск в любом из поддерживаемых типов файлов, перечисленных в `--type-list`,
+включая те, которые были добавлены в командной строке с помощью `--type-add`. Это эквивалентно
+команде `rg -type agda -type asciidoc -type asm ...`, где `...`
+означает список флагов `--type` для остальных типов в `--type-list`.
 
-As an example, let's suppose you have a shell script in your current directory,
-`my-shell-script`, which includes a shell library, `my-shell-library.bash`.
-Both `rg --type sh` and `rg --type all` would only search for matches in
-`my-shell-library.bash`, not `my-shell-script`, because the globs matched
-by the `sh` file type don't include files without an extension. On the
-other hand, `rg --type-not all` would search `my-shell-script` but not
+В качестве примера давайте предположим, что у вас есть bash скрипт в вашем текущем каталоге
+`my-shell-script`, который включает в себя библиотеку `my-shell-library.bash`.
+И `rg -type sh`, и `rg -type all` будут искать совпадения только в
+`my-shell-library.bash`, а не в `my-shell-script`, потому
+что glob, соответствующие типу файла `sh`, не включают файлы без расширения. С
+другой стороны, `rg --type-not all` будет искать `my-shell-script`, но не
 `my-shell-library.bash`.
 
-### Replacements
+### Замены
 
-ripgrep provides a limited ability to modify its output by replacing matched
-text with some other text. This is easiest to explain with an example. Remember
-when we searched for the word `fast` in ripgrep's README?
+ripgrep предоставляет ограниченную возможность изменять свои выходные данные, заменяя
+соответствующий текст каким-либо другим текстом. Это проще всего объяснить на примере.
+Помните, когда мы искали слово `fast` в README ripgrep?
 
 ```
 $ rg fast README.md
@@ -447,8 +447,8 @@ $ rg fast README.md
 129:  optimizations to make searching very fast.
 ```
 
-What if we wanted to *replace* all occurrences of `fast` with `FAST`? That's
-easy with ripgrep's `--replace` flag:
+Что, если бы мы захотели *заменить* все слова `fast` на `FAST`? Это
+легко сделать с помощью флага `--replace` в ripgrep:
 
 ```
 $ rg fast README.md --replace FAST
@@ -459,16 +459,16 @@ $ rg fast README.md --replace FAST
 129:  optimizations to make searching very FAST.
 ```
 
-or, more succinctly,
+Или, более кратко:
 
 ```
 $ rg fast README.md -r FAST
 [snip]
 ```
 
-In essence, the `--replace` flag applies *only* to the matching portion of text
-in the output. If you instead wanted to replace an entire line of text, then
-you need to include the entire line in your match. For example:
+В общем, флаг `--replace` применяется *только* к соответствующей части текста
+в выходных данных. Если вместо этого вы хотите заменить целую строку текста, то
+вам нужно включить всю строку в ваш шаблон. Например:
 
 ```
 $ rg '^.*fast.*$' README.md -r FAST
@@ -479,8 +479,8 @@ $ rg '^.*fast.*$' README.md -r FAST
 129:FAST
 ```
 
-Alternatively, you can combine the `--only-matching` (or `-o` for short) with
-the `--replace` flag to achieve the same result:
+Альтернативно, вы можете комбинировать `--only-matching` (или сокращенно `-o`) с
+флагом `--replace` для достижения того же результата:
 
 ```
 $ rg fast README.md --only-matching --replace FAST
@@ -491,20 +491,18 @@ $ rg fast README.md --only-matching --replace FAST
 129:FAST
 ```
 
-or, more succinctly,
+Или, более кратко:
 
 ```
 $ rg fast README.md -or FAST
 [snip]
 ```
 
-Finally, replacements can include capturing groups. For example, let's say
-we wanted to find all occurrences of `fast` followed by another word and
-join them together with a dash. The pattern we might use for that is
-`fast\s+(\w+)`, which matches `fast`, followed by any amount of whitespace,
-followed by any number of "word" characters. We put the `\w+` in a "capturing
-group" (indicated by parentheses) so that we can reference it later in our
-replacement string. For example:
+Наконец, замены могут включать в себя группы. Например, предположим, что
+мы хотим найти все слова `fast`, за которыми следует другое слово, и
+соединить их при помощи тире. Шаблон, который мы могли бы использовать для этого, -
+`fast\s+(\w+)`, который соответствует слову `fast`, за которым следует любое количество пробелов,
+а за ними любое количество символов "слова". Мы помещаем `\w+` в "группу захвата" (обозначенную круглыми скобками), чтобы мы могли ссылаться на нее позже в нашей заменяющей строке. Например:
 
 ```
 $ rg 'fast\s+(\w+)' README.md -r 'fast-$1'
@@ -512,15 +510,15 @@ $ rg 'fast\s+(\w+)' README.md -r 'fast-$1'
 124:Summarizing, `ripgrep` is fast-because:
 ```
 
-Our replacement string here, `fast-$1`, consists of `fast-` followed by the
-contents of the capturing group at index `1`. (Capturing groups actually start
-at index 0, but the `0`th capturing group always corresponds to the entire
-match. The capturing group at index `1` always corresponds to the first
-explicit capturing group found in the regex pattern.)
+Наша строка замены, `fast-$1`, состоит из `fast-`, за которой следует
+содержимое группы захвата с индексом `1`. (Группы захвата на самом деле начинаются
+с индекса 0, но `0`-я группа захвата всегда соответствует всему
+совпадению. Группа захвата с индексом `1` всегда соответствует первой
+явной группе захвата, найденной в шаблоне регулярных выражений.)
 
-Capturing groups can also be named, which is sometimes more convenient than
-using the indices. For example, the following command is equivalent to the
-above command:
+Группы захвата также могут быть названы, что иногда удобнее, чем
+использовать индексы. Например, следующая команда эквивалентна приведенной
+выше:
 
 ```
 $ rg 'fast\s+(?P<word>\w+)' README.md -r 'fast-$word'
@@ -528,9 +526,9 @@ $ rg 'fast\s+(?P<word>\w+)' README.md -r 'fast-$word'
 124:Summarizing, `ripgrep` is fast-because:
 ```
 
-It is important to note that ripgrep **will never modify your files**. The
-`--replace` flag only controls ripgrep's output. (And there is no flag to let
-you do a replacement in a file.)
+Важно отметить, что ripgrep **никогда не будет изменять ваши файлы**. То есть
+флаг `--replace` управляет только выводом ripgrep. (И нет флага, позволяющего выполнять
+замену в самом файле.)
 
 
 ### Configuration file
