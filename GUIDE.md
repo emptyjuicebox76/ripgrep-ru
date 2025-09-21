@@ -695,82 +695,78 @@ $ rg '\w(?-u:\w)\w'
 ```
 
 
-### Binary data
+### Бинарные данные
 
-In addition to skipping hidden files and files in your `.gitignore` by default,
-ripgrep also attempts to skip binary files. ripgrep does this by default
-because binary files (like PDFs or images) are typically not things you want to
-search when searching for regex matches. Moreover, if content in a binary file
-did match, then it's possible for undesirable binary data to be printed to your
-terminal and wreak havoc.
+В дополнение к пропуску скрытых файлов и файлов в `.gitignore` по умолчанию, ripgrep также
+пытается пропустить бинарные файлы. ripgrep делает это по умолчанию , потому что бинарные файлы
+(например, PDF-файлы или изображения) обычно не являются тем, что вы хотите искать при поиске с
+регулярными выражениями. Более того, если содержимое бинарного файла действительно совпадает, 
+то нежелательные бинарные данные могут быть напечатаны на вашем терминале и привести к хаосу.
 
-Unfortunately, unlike skipping hidden files and respecting your `.gitignore`
-rules, a file cannot as easily be classified as binary. In order to figure out
-whether a file is binary, the most effective heuristic that balances
-correctness with performance is to simply look for `NUL` bytes. At that point,
-the determination is simple: a file is considered "binary" if and only if it
-contains a `NUL` byte somewhere in its contents.
+К сожалению, в отличие от пропуска скрытых файлов и соблюдения правил `.gitignore`, 
+определить бинарный файл не так просто. Чтобы определить, является ли файл бинарным, наиболее
+эффективным методом, который обеспечивает баланс между корректностью и производительностью,
+является простой поиск `NUL` байт. На этом этапе определение простое: файл считается "бинарным"
+тогда и только тогда, когда он содержит где-то в своем содержимом `NUL`.
 
-The issue is that while most binary files will have a `NUL` byte toward the
-beginning of its contents, this is not necessarily true. The `NUL` byte might
-be the very last byte in a large file, but that file is still considered
-binary. While this leads to a fair amount of complexity inside ripgrep's
-implementation, it also results in some unintuitive user experiences.
+Проблема в том, что, хотя большинство двоичных файлов имеют нулевой байт в начале своего
+содержимого, но так происходит не всегда. `NUL` байт может быть самым последним байтом в большом
+файле, но этот файл все равно считается бинарным. Хотя это приводит к значительной сложности
+реализации ripgrep, это также приводит к некоторому неинтуитивному взаимодействию с пользователем.
 
-At a high level, ripgrep operates in three different modes with respect to
-binary files:
+На высоком уровне ripgrep работает в трех различных режимах по отношению к двоичным файлам:
 
-1. The default mode is to attempt to remove binary files from a search
-   completely. This is meant to mirror how ripgrep removes hidden files and
-   files in your `.gitignore` automatically. That is, as soon as a file is
-   detected as binary, searching stops. If a match was already printed (because
-   it was detected long before a `NUL` byte), then ripgrep will print a warning
-   message indicating that the search stopped prematurely. This default mode
-   **only applies to files searched by ripgrep as a result of recursive
-   directory traversal**, which is consistent with ripgrep's other automatic
-   filtering. For example, `rg foo .file` will search `.file` even though it
-   is hidden. Similarly, `rg foo binary-file` will search `binary-file` in
-   "binary" mode automatically.
-2. Binary mode is similar to the default mode, except it will not always
-   stop searching after it sees a `NUL` byte. Namely, in this mode, ripgrep
-   will continue searching a file that is known to be binary until the first
-   of two conditions is met: 1) the end of the file has been reached or 2) a
-   match is or has been seen. This means that in binary mode, if ripgrep
-   reports no matches, then there are no matches in the file. When a match does
-   occur, ripgrep prints a message similar to one it prints when in its default
-   mode indicating that the search has stopped prematurely. This mode can be
-   forcefully enabled for all files with the `--binary` flag. The purpose of
-   binary mode is to provide a way to discover matches in all files, but to
-   avoid having binary data dumped into your terminal.
-3. Text mode completely disables all binary detection and searches all files
-   as if they were text. This is useful when searching a file that is
-   predominantly text but contains a `NUL` byte, or if you are specifically
-   trying to search binary data. This mode can be enabled with the `-a/--text`
-   flag. Note that when using this mode on very large binary files, it is
-   possible for ripgrep to use a lot of memory.
+1. Режим по умолчанию - попытка удалить двоичные файлы из поиска полностью. Это отражает то,
+   как ripgrep автоматически удаляет скрытые файлы и файлы в `.gitignore`. То есть, как только 
+   файл определяется как бинарный, поиск прекращается. Если совпадение уже было выведено
+   (поскольку оно было обнаружено задолго до `NUL` байта), ripgrep выдаст предупреждение,
+   указывающее на преждевременную остановку поиска. Этот режим по умолчанию **применяется только к
+   файлам, которые ripgrep ищет в результате рекурсивного обхода каталога**, который согласуется с
+   другими автоматическими функциями ripgrep фильтрация. Например, `rg foo .file` будет искать
+   `.file`, даже если он скрыт. Аналогично, `rg foo binary-file` автоматически выполнит поиск в
+   `binary-file` в режиме "binary".
+2. Бинарный режим аналогичен режиму по умолчанию, за исключением того, что он не всегда
+   прекращает поиск после того, как видит `NUL` байт. Именно в этом режиме ripgrep
+   продолжит поиск в файле, который, как известно, является бинарным, до тех пор, пока не будет
+   выполнится одно из двух условий: 1) достигнут конец файла или 2) найдено совпадение. Это
+   означает, что в двоичном режиме, если ripgrep сообщает об отсутствии совпадений, то в файле нет
+   совпадений. Когда совпадение действительно происходит, ripgrep выводит сообщение, аналогичное
+   тому, которое он выводит в режиме по умолчанию, указывающее на преждевременную остановку поиска.
+   Этот режим может быть принудительно включен для всех файлов с флагом `--binary`. Цель бинарного
+   режима - обеспечить возможность обнаружения совпадений во всех файлах, но при этом избежать 
+   загрузки бинарных данных в ваш терминал.
+3. Текстовый режим полностью отключает все функции обнаружения двоичных файлов и выполняет поиск 
+   по всем файлам как если бы они были текстовыми. Это полезно при поиске файла, который
+   в основном состоит из текста, но содержит нулевой байт, или если вы специально пытаетесь
+   выполнить поиск по двоичным данным. Этот режим можно включить с помощью флага `-a/--text`
+   Обратите внимание, что при использовании этого режима для работы с очень большими двоичными
+   файлами ripgrep может использовать много памяти.
 
 Unfortunately, there is one additional complexity in ripgrep that can make it
 difficult to reason about binary files. That is, the way binary detection works
 depends on the way that ripgrep searches your files. Specifically:
+К сожалению, в ripgrep есть одна дополнительная сложность, которая может затруднить поиск двоичных
+файлов. То есть способ обнаружения бинарных файлов зависит от того, как ripgrep выполняет поиск в
+ваших файлах. А, именно:
 
-* When ripgrep uses memory maps, then binary detection is only performed on the
-  first few kilobytes of the file in addition to every matching line.
-* When ripgrep doesn't use memory maps, then binary detection is performed on
-  all bytes searched.
+* Когда ripgrep использует карты памяти, обнаружение двоичных файлов выполняется только для
+  первых нескольких килобайт файла в дополнение к каждой соответствующей строке.
+* Если ripgrep не использует карты памяти, то бинарное определение выполняется для всех искомых
+  байт.
 
-This means that whether a file is detected as binary or not can change based
-on the internal search strategy used by ripgrep. If you prefer to keep
-ripgrep's binary file detection consistent, then you can disable memory maps
-via the `--no-mmap` flag. (The cost will be a small performance regression when
-searching very large files on some platforms.)
+Это означает, что определение файла как бинарного или нет может зависеть от стратегии внутреннего
+поиска, используемой ripgrep. Если вы предпочитаете, чтобы функция обнаружения бинарных файлов в
+ripgrep была последовательной, вы можете отключить отображение карт памяти с помощью флага 
+`--no-mmap`. (Это приведет к небольшому снижению производительности при поиске очень больших 
+файлов на некоторых платформах.)
 
 
-### Preprocessor
+### Препроцессор
 
-In ripgrep, a preprocessor is any type of command that can be run to transform
-the input of every file before ripgrep searches it. This makes it possible to
-search virtually any kind of content that can be automatically converted to
-text without having to teach ripgrep how to read said content.
+В ripgrep препроцессор - это команда любого типа, которая может быть запущена для преобразования
+входных данных каждого файла перед поиском в ripgrep. Это позволяет выполнять поиск практически по
+любому виду содержимого, которое может быть автоматически преобразовано в текст, без необходимости
+обучать ripgrep чтению указанного содержимого.
 
 One common example is searching PDFs. PDFs are first and foremost meant to be
 displayed to users. But PDFs often have text streams in them that can be useful
@@ -778,22 +774,26 @@ to search. In our case, we want to search Bruce Watson's excellent
 dissertation,
 [Taxonomies and Toolkits of Regular Language Algorithms](https://burntsushi.net/stuff/1995-watson.pdf).
 After downloading it, let's try searching it:
+Одним из распространенных примеров является поиск в PDF-файлах. PDF-файлы в первую очередь
+предназначены для отображения пользователям. Но в PDF-файлах часто содержатся текстовые потоки,
+которые могут быть полезны для поиска. В нашем случае мы хотим выполнить поиск по
+превосходной диссертации Брюса Уотсона, [Таксономия и инструментарий алгоритмов обычного языка](https://burntsushi.net/stuff/1995-watson.pdf).
+После загрузки давайте попробуем выполнить поиск по нему:
 
 ```
 $ rg 'The Commentz-Walter algorithm' 1995-watson.pdf
 $
 ```
 
-Surely, a dissertation on regular language algorithms would mention
-Commentz-Walter. Indeed it does, but our search isn't picking it up because
-PDFs are a binary format, and the text shown in the PDF may not be encoded as
-simple contiguous UTF-8. Namely, even passing the `-a/--text` flag to ripgrep
-will not make our search work.
+Конечно, в диссертации по алгоритмам обычного языка упоминалось бы Commentz-Walter. Действительно,
+это так, но наш поиск не находит этого, потому что PDF-файлы - это бинарный формат, и текст,
+отображаемый в PDF, может быть закодирован не как простой непрерывный UTF-8. А именно, даже 
+передача флага `-a/--text` в ripgrep не заставит наш поиск работать.
 
-One way to fix this is to convert the PDF to plain text first. This won't work
-well for all PDFs, but does great in a lot of cases. (Note that the tool we
-use, `pdftotext`, is part of the [poppler](https://poppler.freedesktop.org)
-PDF rendering library.)
+Один из способов исправить это - сначала преобразовать PDF в обычный текст. Это не подходит для 
+всех PDF-файлов, но во многих случаях работает отлично. (Обратите внимание, что инструмент, 
+который мы используем, `pdftotext`, является частью [poppler](https://poppler.freedesktop.org)
+Библиотеки рендеринга PDF.)
 
 ```
 $ pdftotext 1995-watson.pdf > 1995-watson.txt
@@ -806,13 +806,13 @@ $ rg 'The Commentz-Walter algorithm' 1995-watson.txt
 17297: The Commentz-Walter algorithms (CW). In all versions of the CW algorithms, a common program skeleton is used with di erent shift functions. The CW algorithms are
 ```
 
-But having to explicitly convert every file can be a pain, especially when you
-have a directory full of PDF files. Instead, we can use ripgrep's preprocessor
-feature to search the PDF. ripgrep's `--pre` flag works by taking a single
-command name and then executing that command for every file that it searches.
-ripgrep passes the file path as the first and only argument to the command and
-also sends the contents of the file to stdin. So let's write a simple shell
-script that wraps `pdftotext` in a way that conforms to this interface:
+Но необходимость явно конвертировать каждый файл может быть проблемой, особенно если у вас есть
+каталог, полный PDF-файлов. Вместо этого мы можем использовать функцию препроцессора ripgrep для
+поиска в PDF. флаг `--pre` в ripgrep работает, принимая одно имя команды и затем выполняя эту
+команду для каждого файла, в котором выполняется поиск. ripgrep передает путь к файлу в качестве
+первого и единственного аргумента команде, а также отправляет содержимое файла в стандартный ввод.
+Итак, давайте напишем простой shell-скрипт, который обертывает `pdftotext` способом, 
+соответствующим этому интерфейсу:
 
 ```
 $ cat preprocess
@@ -821,8 +821,7 @@ $ cat preprocess
 exec pdftotext - -
 ```
 
-With `preprocess` in the same directory as `1995-watson.pdf`, we can now use it
-to search the PDF:
+Теперь, когда "preprocess" находится в том же каталоге, что и `1995-watson.pdf`, мы можем использовать его для поиска в PDF:
 
 ```
 $ rg --pre ./preprocess 'The Commentz-Walter algorithm' 1995-watson.pdf
@@ -834,12 +833,12 @@ $ rg --pre ./preprocess 'The Commentz-Walter algorithm' 1995-watson.pdf
 17297: The Commentz-Walter algorithms (CW). In all versions of the CW algorithms, a common program skeleton is used with di erent shift functions. The CW algorithms are
 ```
 
-Note that `preprocess` must be resolvable to a command that ripgrep can read.
-The simplest way to do this is to put your preprocessor command in a directory
-that is in your `PATH` (or equivalent), or otherwise use an absolute path.
+Обратите внимание, что `preprocess` должен быть преобразован в команду, которую может прочитать
+ripgrep. Самый простой способ сделать это - поместить вашу команду препроцессора в каталог,
+который находится в вашем `PATH` (или эквивалентном), или использовать абсолютный путь.
 
-As a bonus, this turns out to be quite a bit faster than other specialized PDF
-grepping tools:
+В качестве бонуса, это оказывается намного быстрее, чем другие специализированные инструменты для
+обработки PDF-файлов:
 
 ```
 $ time rg --pre ./preprocess 'The Commentz-Walter algorithm' 1995-watson.pdf -c
@@ -861,8 +860,8 @@ maxmem  16 MB
 faults  0
 ```
 
-If you wind up needing to search a lot of PDFs, then ripgrep's parallelism can
-make the speed difference even greater.
+Если вам в конечном итоге потребуется выполнить поиск в большом количестве PDF-файлов, то
+параллелизм ripgrep может еще больше увеличить разницу в скорости.
 
 #### A more robust preprocessor
 
