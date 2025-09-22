@@ -857,10 +857,10 @@ faults  0
 Если вам в конечном итоге потребуется выполнить поиск в большом количестве PDF-файлов, то
 параллелизм ripgrep может еще больше увеличить разницу в скорости.
 
-#### A more robust preprocessor
+#### Более надежный препроцессор
 
-One of the problems with the aforementioned preprocessor is that it will fail
-if you try to search a file that isn't a PDF:
+Одна из проблем, связанных с вышеупомянутым препроцессором, заключается в том, что он завершится
+сбоем, если вы попытаетесь выполнить поиск в файле, который не является PDF:
 
 ```
 $ echo foo > not-a-pdf
@@ -873,8 +873,9 @@ Syntax Error: Couldn't find trailer dictionary
 Syntax Error: Couldn't read xref table
 ```
 
-To fix this, we can make our preprocessor script a bit more robust by only
-running `pdftotext` when we think the input is a non-empty PDF:
+Чтобы исправить это, мы можем сделать наш скрипт препроцессора немного более надежным, запустив
+`pdftotext` только в том случае, если мы считаем, что входные данные представляют собой непустой
+PDF-файл:
 
 ```
 $ cat preprocessor
@@ -895,9 +896,9 @@ case "$1" in
 esac
 ```
 
-We can even extend our preprocessor to search other kinds of files. Sometimes
-we don't always know the file type from the file name, so we can use the `file`
-utility to "sniff" the type of the file based on its contents:
+Мы даже можем расширить наш препроцессор для поиска других типов файлов. Иногда мы не можем
+определить тип файла по его имени, поэтому мы можем использовать утилиту `file`, чтобы "засниффить"
+тип файла на основе его содержимого:
 
 ```
 $ cat processor
@@ -927,13 +928,13 @@ esac
 
 #### Reducing preprocessor overhead
 
-There is one more problem with the above approach: it requires running a
-preprocessor for every single file that ripgrep searches. If every file needs
-a preprocessor, then this is OK. But if most don't, then this can substantially
-slow down searches because of the overhead of launching new processors. You
-can avoid this by telling ripgrep to only invoke the preprocessor when the file
-path matches a glob. For example, consider the performance difference even when
-searching a repository as small as ripgrep's:
+У описанного выше подхода есть еще одна проблема: он требует запуска препроцессора для каждого
+отдельного файла, который ищет ripgrep. Если для каждого файла требуется препроцессор, то это
+нормально. Но если большинство из них не требуют препроцессора, то это может существенно замедлить
+поиск из-за накладных расходов на запуск новых процессоров. Вы можете избежать этого, указав ripgrep
+вызывать препроцессор только в том случае, если путь к файлу совпадает с объектом glob. Например,
+обратите внимание на разницу в производительности даже при поиске в таком небольшом репозитории,
+как ripgrep:
 
 ```
 $ time rg --pre pre-rg 'fn is_empty' -c
