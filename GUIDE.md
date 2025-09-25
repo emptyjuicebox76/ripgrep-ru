@@ -965,37 +965,36 @@ faults  0
 ```
 
 
-### Common options
+### Общие параметры
 
-ripgrep has a lot of flags. Too many to keep in your head at once. This section
-is intended to give you a sampling of some of the most important and frequently
-used options that will likely impact how you use ripgrep on a regular basis.
+В ripgrep есть множество флагов. Их слишком много, чтобы удержать каждый в голове сразу. В этом
+разделе мы расскажем о некоторых наиболее важных и часто используемых параметрах, которые, 
+помогут вам пользоваться ripgrep на регулярной основе.
 
-* `-h`: Show ripgrep's condensed help output.
-* `--help`: Show ripgrep's longer form help output. (Nearly what you'd find in
-  ripgrep's man page, so pipe it into a pager!)
-* `-i/--ignore-case`: When searching for a pattern, ignore case differences.
-  That is `rg -i fast` matches `fast`, `fASt`, `FAST`, etc.
-* `-S/--smart-case`: This is similar to `--ignore-case`, but disables itself
-  if the pattern contains any uppercase letters. Usually this flag is put into
-  alias or a config file.
-* `-F/--fixed-strings`: Disable regular expression matching and treat the pattern
-   as a literal string.
-* `-w/--word-regexp`: Require that all matches of the pattern be surrounded
-  by word boundaries. That is, given `pattern`, the `--word-regexp` flag will
-  cause ripgrep to behave as if `pattern` were actually `\b(?:pattern)\b`.
-* `-c/--count`: Report a count of total matched lines.
-* `--files`: Print the files that ripgrep *would* search, but don't actually
-  search them.
-* `-a/--text`: Search binary files as if they were plain text.
-* `-U/--multiline`: Permit matches to span multiple lines.
-* `-z/--search-zip`: Search compressed files (gzip, bzip2, lzma, xz, lz4,
-  brotli, zstd). This is disabled by default.
-* `-C/--context`: Show the lines surrounding a match.
-* `--sort path`: Force ripgrep to sort its output by file name. (This disables
-  parallelism, so it might be slower.)
-* `-L/--follow`: Follow symbolic links while recursively searching.
-* `-M/--max-columns`: Limit the length of lines printed by ripgrep.
-* `--debug`: Shows ripgrep's debug output. This is useful for understanding
-  why a particular file might be ignored from search, or what kinds of
-  configuration ripgrep is loading from the environment.
+* `-h`: Показывает сжатый вывод справки ripgrep.
+* `--help`: Показывает вывод справки в расширенной форме. (Почти то же, что вы найдете на
+  странице руководства ripgrep, так что перенесите вывод в пейджер при помощи `|`!)
+* `-i/--ignore-case`: При поиске шаблона игнорировать регистр.
+  То есть `rg -i fast` соответствует `fast`, `fASt`, `FAST` и т.д.
+* `-S/--smart-case`: Этот параметр аналогичен `--ignore-case`, но отключается сам
+  по себе, если шаблон содержит какие-либо заглавные буквы. Обычно этот флаг устанавливается в
+  alias или конфигурационном файле.
+* `-F/--fixed-strings`: Отключить сопоставление с регулярными выражениями и обрабатывать шаблон
+   как буквальную строку.
+* `-w/--word-regexp`: Требуется, чтобы все совпадения шаблона были заключены
+  в границы слов. То есть, учитывая `pattern`, флаг `--word-regexp`
+  заставит ripgrep вести себя так, как если бы `pattern` на самом деле был `\b(?:pattern)\b`.
+* `-c/--count`: Вывод общего количества совпадающих строк.
+* `--files`: Вывести файлы, по которым будет выполнен поиск, при этом не выполняя поиск по ним.
+* `-a/--text`: Выполнить поиск в бинарныъ файлах так, как если бы они были обычным текстом.
+* `-U/--multiline`: Позволяет совпадениям охватывать несколько строк.
+* `-z/--search-zip`: Выполнить поиск по сжатым файлам (gzip, bzip2, lzma, xz, lz4,
+  brotli, zstd). По умолчанию эта функция отключена.
+* `-C/--context`: Отображает строки, окружающие совпадение.
+* `--sort path`: Принудительно сортирует вывод ripgrep по имени файла. (Это отключает
+  параллелизм, поэтому работа может быть медленнее.)
+* `-L/--follow`: Переход по символьным ссылкам при рекурсивном поиске.
+* `-M/--max-columns`: Ограничивает длину строк, выводимых ripgrep.
+* `--debug`: Показывает вывод отладки ripgrep. Это полезно для понимания
+  почему конкретный файл может быть проигнорирован при поиске или какие
+  конфигурации ripgrep загружает из среды.
